@@ -8,9 +8,10 @@ public class Wizard extends Thread {
 
         try {
             for(int i = 1; i <= 5; i++) {
-                Thread.sleep(rand.nextInt(1000) + 500);
+                Thread.sleep(rand.nextInt(500, 1500));
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             System.err.println("Wizards adventure was interrupted!");
         }
         System.out.println("The Wizard returns victorious!");
