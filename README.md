@@ -48,3 +48,7 @@ This project includes a tiny, dependency-free API client used to fetch a short p
 - How the app uses the API
 	- The main class `RetroMultithreadingAdventure` calls `ApiClient.fetchAdvice()` once at startup and stores the result in the static field `RetroMultithreadingAdventure.latestAdvice`.
 	- Each character thread (`Knight`, `Wizard`, `Thief`) reads `RetroMultithreadingAdventure.latestAdvice` at the start of its `run()` method and prints or lightly adapts behavior based on the advice content (for example, printing the advice and selecting slightly different output messages).
+
+- AI Reflection:
+    - The only AI generation and alteration that I utilized in this project was to set up the API class and implementation. 
+    - I found the API and provided the information, CoPilot took that and implemented it because of my unfamiliarity with API's and the syntax that surrounds them.
