@@ -15,7 +15,6 @@ import java.net.URL;
  */
 public class GuiApp extends Application {
     private volatile boolean gameStarted = false;
-    private volatile boolean canContinue = false;
 
     @Override
     public void start(Stage stage) {
@@ -37,23 +36,14 @@ public class GuiApp extends Application {
             scene.getStylesheets().add(css.toExternalForm());
         }
 
-        // Input handlers: click or Enter to start; Space/Click to continue when prompted
+        // Input handlers: click or Enter to start
         scene.setOnMouseClicked(e -> {
             if (!gameStarted) startGame(centerLabel);
-            else if (canContinue) {
-                RetroMultithreadingAdventure.continueToNextPart();
-                canContinue = false;
-            }
         });
         scene.setOnKeyPressed(e -> {
             KeyCode code = e.getCode();
             if (code == KeyCode.ENTER) {
                 if (!gameStarted) startGame(centerLabel);
-            } else if (code == KeyCode.SPACE) {
-                if (canContinue) {
-                    RetroMultithreadingAdventure.continueToNextPart();
-                    canContinue = false;
-                }
             }
         });
 
@@ -66,11 +56,31 @@ public class GuiApp extends Application {
         if (gameStarted) return;
         gameStarted = true;
         GameWorld.uiLogger = msg -> Platform.runLater(() -> {
-            if (msg != null) centerLabel.setText(msg);
-            if (msg != null && msg.contains("PART_COMPLETE")) {
-                canContinue = true;
-                centerLabel.setText(msg + "\n(Click or press Space to continue)");
+            if (msg == null) return;
+            // Handle part-complete messages: strip explicit part numbering and
+            // show a 3-second loading animation that displays '.', '..', '...'
+            if (msg.contains("PART_COMPLETE")) {
+                // Remove 'Part N' and any instruction text coming from the logger
+                final String displayInit = msg.replaceAll("Part \\d+", "").replace("Click Continue to proceed.", "").replaceAll("=+", "").trim();
+                final String display = displayInit.isEmpty() ? "Action complete." : displayInit;
+                centerLabel.setText(display);
+
+                // Animate dots for 3 seconds (one dot added each second), then continue.
+                new Thread(() -> {
+                    try {
+                        for (int i = 1; i <= 3; i++) {
+                            final String dots = new String(new char[i]).replace('\0', '.');
+                            Platform.runLater(() -> centerLabel.setText(display + "\n" + dots));
+                            Thread.sleep(1000);
+                        }
+                        RetroMultithreadingAdventure.continueToNextPart();
+                    } catch (InterruptedException ignored) {
+                        Thread.currentThread().interrupt();
+                    }
+                }, "UiPartAnimator").start();
+                return;
             }
+            centerLabel.setText(msg);
         });
 
         new Thread(() -> {
