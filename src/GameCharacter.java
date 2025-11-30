@@ -50,7 +50,7 @@ public abstract class GameCharacter extends Thread {
                     for (int r = 0; r < RetroMultithreadingAdventure.roundsPerPart; r++) {
                         actOnce();
                     }
-                    GameWorld.log(characterName + " finished part " + part + " and waits for next part.");
+                    GameWorld.log(characterName + " finished.");
                     // Arrive at phaser and wait for main to signal continuation
                     RetroMultithreadingAdventure.partPhaser.arriveAndAwaitAdvance();
                 }

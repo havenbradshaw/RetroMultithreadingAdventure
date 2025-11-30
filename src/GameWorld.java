@@ -53,6 +53,21 @@ public class GameWorld {
         }
     }
 
+    /**
+     * Signal the UI to advance to the next step without printing a visible
+     * marker to the console. This keeps logs clean while allowing the GUI to
+     * display the 3-second loading animation and then continue.
+     */
+    public static void signalNextToUi() {
+        try {
+            Consumer<String> c = uiLogger;
+            if (c != null) {
+                c.accept("__NEXT_SIGNAL__");
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
     public static List<String> getEventSnapshot() {
         synchronized (eventLog) {
             return new ArrayList<>(eventLog);

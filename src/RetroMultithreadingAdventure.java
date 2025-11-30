@@ -67,7 +67,9 @@ public class RetroMultithreadingAdventure extends Thread {
                 try { Thread.sleep(50); } catch (InterruptedException ignored) {}
             }
 
-            GameWorld.log("=== PART_COMPLETE === Part " + part + " complete. Click Continue to proceed.");
+            // Signal the UI to advance to the next step. This does not print
+            // a visible marker to the console so logs remain clean.
+            GameWorld.signalNextToUi();
 
             // Wait for GUI to release continue
             try {

@@ -57,20 +57,20 @@ public class GuiApp extends Application {
         gameStarted = true;
         GameWorld.uiLogger = msg -> Platform.runLater(() -> {
             if (msg == null) return;
-            // Handle part-complete messages: strip explicit part numbering and
-            // show a 3-second loading animation that displays '.', '..', '...'
-            if (msg.contains("PART_COMPLETE")) {
-                // Remove 'Part N' and any instruction text coming from the logger
-                final String displayInit = msg.replaceAll("Part \\d+", "").replace("Click Continue to proceed.", "").replaceAll("=+", "").trim();
-                final String display = displayInit.isEmpty() ? "Action complete." : displayInit;
-                centerLabel.setText(display);
+
+            // Internal signal used to trigger the 3-second loading animation
+            // without printing any visible marker to the console.
+            if ("__NEXT_SIGNAL__".equals(msg)) {
+                // Use the current label text as the message to display while
+                // animating (it should already contain the last logged message).
+                final String displayText = (centerLabel.getText() == null || centerLabel.getText().isEmpty()) ? "Completed." : centerLabel.getText();
 
                 // Animate dots for 3 seconds (one dot added each second), then continue.
                 new Thread(() -> {
                     try {
                         for (int i = 1; i <= 3; i++) {
                             final String dots = new String(new char[i]).replace('\0', '.');
-                            Platform.runLater(() -> centerLabel.setText(display + "\n" + dots));
+                            Platform.runLater(() -> centerLabel.setText(displayText + "\n" + dots));
                             Thread.sleep(1000);
                         }
                         RetroMultithreadingAdventure.continueToNextPart();
@@ -80,6 +80,8 @@ public class GuiApp extends Application {
                 }, "UiPartAnimator").start();
                 return;
             }
+
+            // Normal log messages are displayed as-is.
             centerLabel.setText(msg);
         });
 
