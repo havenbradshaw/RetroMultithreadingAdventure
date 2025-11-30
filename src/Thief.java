@@ -1,26 +1,59 @@
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
-public class Thief extends Thread {
+public class Thief extends GameCharacter {
+    public Thief() {
+        super("Thief");
+    }
+
     @Override
     public void run() {
-        System.out.println("The desperate Thief sets out on a quest to slay the dragon!");
+        GameWorld.log("The desperate Thief sets out on a quest to slay the dragon!");
         String advice = RetroMultithreadingAdventure.latestAdvice;
         if (advice != null) {
-            System.out.println("Thief quietly notes the advice: \"" + advice + "\"");
+            GameWorld.log("Thief quietly notes the advice: \"" + advice + "\"");
         }
-        Random rand = new Random();
 
         try {
-            for(int i = 1; i <= 5; i++) {
-                Thread.sleep(rand.nextInt(500, 1500));
+            for (int i = 0; i < 5; i++) {
+                actOnce();
             }
         } catch (InterruptedException e) {
-            System.err.println("Thiefs adventure was interrupted!");
+            Thread.currentThread().interrupt();
+            GameWorld.log("Thief's adventure was interrupted!");
         }
+
         if (advice != null && advice.toLowerCase().contains("quiet")) {
-            System.out.println("The Thief returns victorious and remarkably silent about it.");
+            GameWorld.log("The Thief returns victorious and remarkably silent about it.");
         } else {
-            System.out.println("The Thief returns victorious!");
+            GameWorld.log("The Thief returns victorious!");
         }
     }
+
+    @Override
+    protected void actOnce() throws InterruptedException {
+        // Thief tries to pilfer loot; uses tryLock to simulate stealthy attempts
+        Thread.sleep(rand.nextInt(200, 700));
+        boolean stole = false;
+        if (GameWorld.lootLock.tryLock()) {
+            try {
+                String item = GameWorld.lootPool.poll();
+                if (item != null) {
+                    inventory.add(item);
+                    GameWorld.log("Thief quietly steals: " + item);
+                    stole = true;
+                }
+            } finally {
+                GameWorld.lootLock.unlock();
+            }
+        } else {
+            // Failed to acquire lock — stealthy fallback
+            GameWorld.log("Thief couldn't get close enough to the loot this round.");
+        }
+
+        if (stole && rand.nextDouble() < 0.4) {
+            recordWin();
+            GameWorld.log("Thief successfully escapes with the prize.");
+        }
     }
+}

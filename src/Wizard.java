@@ -1,27 +1,28 @@
-import java.util.Random;
-
-public class Wizard extends Thread {
-    @Override
-    public void run() {
-        System.out.println("The powerful Wizard sets out on a quest to slay the dragon!");
+public class Wizard extends GameCharacter {
+    public Wizard() {
+        super("Wizard");
+        GameWorld.log("The powerful Wizard sets out on a quest to slay the dragon!");
         String advice = RetroMultithreadingAdventure.latestAdvice;
         if (advice != null) {
-            System.out.println("Wizard ponders the advice: \"" + advice + "\"");
+            GameWorld.log("Wizard ponders the advice: \"" + advice + "\"");
         }
-        Random rand = new Random();
-
-        try {
-            for(int i = 1; i <= 5; i++) {
-                Thread.sleep(rand.nextInt(500, 1500));
-                // If the advice sounds encouraging, the Wizard feels emboldened (no timing change in this demo)
-                if (advice != null && (advice.toLowerCase().contains("go") || advice.toLowerCase().contains("brave"))) {
-                    // simple behavioral note; could change spell power or timing in an extended demo
-                }
+    }
+    @Override
+    protected void actOnce() throws InterruptedException {
+        // Wizard casts a spell and sometimes finds mana or a rune
+        Thread.sleep(rand.nextInt(300, 800));
+        boolean success = rand.nextDouble() < 0.5;
+        if (success) {
+            recordWin();
+            GameWorld.log("Wizard conjures a potent spell and succeeds!");
+            // Try to take a mana-related loot if available
+            String loot = GameWorld.takeLoot("Wizard");
+            if (loot != null) {
+                inventory.add(loot);
+                GameWorld.log("Wizard collects: " + loot);
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            System.err.println("Wizards adventure was interrupted!");
+        } else {
+            GameWorld.log("Wizard's spell fizzles but knowledge is gained.");
         }
-        System.out.println("The Wizard returns victorious!");
     }
-    }
+}

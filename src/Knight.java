@@ -1,31 +1,29 @@
 import java.util.Random;
 
-public class Knight extends Thread {
-    @Override
-    public void run() {
-        System.out.println("The brave Knight sets out on a quest to slay the dragon!");
-        // Read shared advice fetched by the main thread (may be null)
+public class Knight extends GameCharacter {
+    public Knight() {
+        super("Knight");
+        GameWorld.log("The brave Knight sets out on a quest to slay the dragon!");
         String advice = RetroMultithreadingAdventure.latestAdvice;
         if (advice != null) {
-            System.out.println("Knight hears a piece of advice: \"" + advice + "\"");
+            GameWorld.log("Knight hears a piece of advice: \"" + advice + "\"");
         }
-        Random rand = new Random();
-
-        try {
-            for(int i = 1; i <= 5; i++) {
-                Thread.sleep(rand.nextInt(500, 1500));
-                // If the advice sounded cautionary, the Knight hesitates a bit longer.
-                if (advice != null && (advice.toLowerCase().contains("don't") || advice.toLowerCase().contains("not"))) {
-                    Thread.sleep(200);
-                }
+    }
+    @Override
+    protected void actOnce() throws InterruptedException {
+        // Simulate a battle attempt
+        Thread.sleep(rand.nextInt(400, 900));
+        boolean won = rand.nextDouble() < 0.6; // Knight is strong
+        if (won) {
+            recordWin();
+            GameWorld.log("Knight wins a skirmish!");
+            String loot = GameWorld.takeLoot("Knight");
+            if (loot != null) {
+                inventory.add(loot);
+                GameWorld.log("Knight loots: " + loot);
             }
-        } catch (InterruptedException e) {
-            System.err.println("Knights adventure was interrupted!");
-        }
-        if (advice != null && advice.toLowerCase().contains("brave")) {
-            System.out.println("The Knight returns more confident and victorious!");
         } else {
-            System.out.println("The Knight returns victorious!");
+            GameWorld.log("Knight struggles but survives the encounter.");
         }
     }
 }

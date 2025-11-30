@@ -4,10 +4,25 @@ A small Java text-adventure that demonstrates basic multithreading and concurren
 
 ## Key features and intended use cases
 
-- Simple multi-character text-adventure demonstrating threads interacting in a shared environment.
-- Minimal codebase that highlights Java threading primitives and concurrency patterns (Thread, synchronized blocks / methods, shared state).
-- Intended for: coursework demos, hands-on learning of Java concurrency, small experiments with thread scheduling and synchronization.
 
+## Capstone: Requirements mapping
+
+This project implements the capstone assignment requirements. Below is a short mapping from each requirement to the implementation in this repository.
+
+- **Abstraction / Inheritance / Polymorphism**: Implemented via the abstract class `GameCharacter` (`src/GameCharacter.java`) which defines shared attributes and the abstract method `actOnce()`. `Knight`, `Wizard`, and `Thief` extend `GameCharacter` and provide unique behavior.
+- **Multithreading**: Each character runs concurrently as a separate thread (classes extend `GameCharacter` which extends `Thread`). The `RetroMultithreadingAdventure` class acts as the `GameEngine` and starts/join()s threads (`src/RetroMultithreadingAdventure.java`).
+- **Shared resources & concurrency control**: `GameWorld` (`src/GameWorld.java`) contains a shared `lootPool` (a `ConcurrentLinkedQueue`) and a `ReentrantLock` (`lootLock`) demonstrating safe concurrent access. Methods like `takeLoot()` use locking and synchronized logging.
+- **Arrays / Collections**: Characters maintain inventories using `List<String>` (synchronized list). The main engine uses a `List<GameCharacter>` to store and start characters.
+- **Lambdas / Streams**: Post-game summary and event printing use streams and lambda expressions in `RetroMultithreadingAdventure.java`.
+- **Random events / Timing**: Characters use `Random` and `Thread.sleep()` inside their `actOnce()` implementations to create randomized events and timing.
+- **Logging / Narrative**: `GameWorld.log()` centralizes event logging and prints narrative text for each character's events.
+- **External API usage**: `ApiClient.fetchAdvice()` (see `src/ApiClient.java`) demonstrates calling an external API, parsing a small JSON response, and sharing the data via `RetroMultithreadingAdventure.latestAdvice`.
+
+Run the compile and run steps in the previous section to try the game and see the concurrent threads in action. If you'd like, I can also:
+
+- Add a Gradle wrapper for simplified builds.
+- Add unit tests for `GameWorld` concurrency behaviors.
+- Improve `ApiClient` with retries and a JSON library for robust parsing.
 ## Technologies used
 
 - Language: Java
@@ -30,6 +45,74 @@ javac -d bin src/*.java
 # Run the main class (adjust the package name if sources are packaged)
 java -cp bin RetroMultithreadingAdventure
 ```
+
+## JavaFX GUI (optional)
+
+This repository includes a minimal JavaFX UI wrapper `src/GuiApp.java` that displays real-time game logs and provides a `Start Adventure` button.
+
+JavaFX is not part of the JDK on many platforms. To run the GUI from PowerShell you must install OpenJFX and provide the JavaFX SDK `lib` directory on the module path. Example steps (replace the path with your JavaFX SDK `lib` path):
+
+```powershell
+# Set this to the JavaFX SDK lib folder on your machine
+$env:FX = 'C:\path\to\javafx-sdk-20\lib'
+
+# Compile (include JavaFX modules)
+javac --module-path $env:FX --add-modules javafx.controls -d bin src/*.java
+
+# Run the JavaFX GUI
+java --module-path $env:FX --add-modules javafx.controls -cp bin GuiApp
+```
+
+Notes:
+- If you use an IDE (IntelliJ, Eclipse, VS Code) you can add the JavaFX SDK to the project's library settings and run `GuiApp` directly.
+- If you prefer a one-command build/run, I can add a `build.gradle` and Gradle wrapper that downloads JavaFX automatically and simplifies these commands.
+If you prefer a one-command build/run, I added a `build.gradle` that uses the `org.openjfx` Gradle plugin to obtain JavaFX.
+
+### Run with Gradle
+
+If you have Gradle installed, from the repository root run:
+
+```powershell
+# Build and run the JavaFX GUI (the plugin will fetch JavaFX automatically)
+gradle run
+```
+
+If you'd like a project-local Gradle wrapper (recommended), generate it once locally with Gradle installed:
+
+```powershell
+# Generate the Gradle wrapper (run once)
+gradle wrapper
+
+# Then start the GUI using the wrapper (on Windows)
+.\gradlew run
+```
+
+The Gradle `run` task is configured to launch `GuiApp` (the JavaFX UI). If you prefer the console version instead, use the `javac`/`java` commands shown earlier.
+
+### Run with Maven
+
+If you prefer Maven, a `pom.xml` has been added to the repository and is configured to run the JavaFX GUI using the `javafx-maven-plugin`.
+
+Requirements: Maven installed and a JDK (11+ recommended). From the repository root run:
+
+```powershell
+# Build and run the JavaFX GUI using the OpenJFX Maven plugin
+mvn javafx:run
+```
+
+If you want to run the console version (no JavaFX) via Maven:
+
+```powershell
+# Compile
+mvn compile
+
+# Run the console GameEngine
+mvn exec:java -Dexec.mainClass="RetroMultithreadingAdventure"
+```
+
+Notes:
+- The `javafx-maven-plugin` will download platform-appropriate JavaFX libraries automatically based on your JDK.
+- If Maven reports missing JavaFX platform binaries, ensure your JDK version and the `javafx.version` (set to 20) are compatible, or adjust the `pom.xml` properties.
 
 ## Development and testing
 

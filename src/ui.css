@@ -1,0 +1,23 @@
+/* ui.css - provides a tiled pixel-art background and centered story text */
+
+.pixel-bg {
+    -fx-background-color: #1b170f;
+    -fx-background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='8'><rect width='8' height='8' fill='%231b170f'/><rect width='4' height='4' fill='%23332211'/><rect x='4' y='4' width='4' height='4' fill='%23332211'/></svg>");
+    -fx-background-repeat: repeat;
+    -fx-padding: 20px;
+}
+
+.center-text {
+    -fx-text-fill: #f0e6d2;
+    -fx-font-family: 'Courier New', monospace;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.8) , 4,0,2,2 );
+    -fx-alignment: center;
+}
+
+.text-area-log {
+    -fx-control-inner-background: rgba(0,0,0,0.35);
+    -fx-font-family: 'Consolas', monospace;
+    -fx-font-size: 12px;
+}
