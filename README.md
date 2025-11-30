@@ -34,7 +34,7 @@ Run the compile and run steps in the previous section to try the game and see th
 
 Prerequisites
 
-- Install a Java Development Kit (JDK) 8, 11, 17, or later and ensure `javac`/`java` are on your PATH.
+- Install a Java Development Kit (JDK) and ensure `javac`/`java` are on your PATH.
 
 Quick start (from the repository root) — compile and run:
 
