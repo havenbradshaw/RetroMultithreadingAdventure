@@ -1,9 +1,12 @@
 /* ui.css - provides a tiled pixel-art background and centered story text */
 
 .pixel-bg {
-    -fx-background-color: #1b170f;
-    -fx-background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='8'><rect width='8' height='8' fill='%231b170f'/><rect width='4' height='4' fill='%23332211'/><rect x='4' y='4' width='4' height='4' fill='%23332211'/></svg>");
-    -fx-background-repeat: repeat;
+     /* Use the user-provided pixel-art background (local copy). */
+     -fx-background-color: #1b170f;
+     -fx-background-image: url("pixel-bg.webp");
+    -fx-background-repeat: no-repeat;
+    -fx-background-size: cover; /* cover the window while preserving aspect */
+    -fx-background-position: center center;
     -fx-padding: 20px;
 }
 
