@@ -1,3 +1,7 @@
+package characters;
+
+import core.GameWorld;
+import core.RetroMultithreadingAdventure;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -8,19 +12,35 @@ public class Thief extends GameCharacter {
 
     @Override
     public void run() {
-        GameWorld.log("The desperate Thief sets out on a quest to slay the dragon!");
         String advice = RetroMultithreadingAdventure.latestAdvice;
+        GameWorld.log("The desperate Thief sets out on a quest to slay the dragon!");
         if (advice != null) {
             GameWorld.log("Thief quietly notes the advice: \"" + advice + "\"");
         }
 
-        try {
-            for (int i = 0; i < 5; i++) {
-                actOnce();
+        if (RetroMultithreadingAdventure.partPhaser != null && RetroMultithreadingAdventure.totalParts > 0 && RetroMultithreadingAdventure.roundsPerPart > 0) {
+            RetroMultithreadingAdventure.partPhaser.register();
+            try {
+                for (int part = 1; part <= RetroMultithreadingAdventure.totalParts; part++) {
+                    for (int r = 0; r < RetroMultithreadingAdventure.roundsPerPart; r++) {
+                        actOnce();
+                    }
+                    GameWorld.log(getCharacterName() + " finished.");
+                    RetroMultithreadingAdventure.partPhaser.arriveAndAwaitAdvance();
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                GameWorld.log("Thief's adventure was interrupted!");
+            } finally {
+                try { RetroMultithreadingAdventure.partPhaser.arriveAndDeregister(); } catch (Exception ignored) {}
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            GameWorld.log("Thief's adventure was interrupted!");
+        } else {
+            try {
+                for (int i = 0; i < 5; i++) actOnce();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                GameWorld.log("Thief's adventure was interrupted!");
+            }
         }
 
         if (advice != null && advice.toLowerCase().contains("quiet")) {
@@ -32,7 +52,6 @@ public class Thief extends GameCharacter {
 
     @Override
     protected void actOnce() throws InterruptedException {
-        // Thief tries to pilfer loot; uses tryLock to simulate stealthy attempts
         Thread.sleep(rand.nextInt(200, 700));
         boolean stole = false;
         if (GameWorld.lootLock.tryLock()) {
@@ -47,7 +66,6 @@ public class Thief extends GameCharacter {
                 GameWorld.lootLock.unlock();
             }
         } else {
-            // Failed to acquire lock — stealthy fallback
             GameWorld.log("Thief couldn't get close enough to the loot this round.");
         }
 

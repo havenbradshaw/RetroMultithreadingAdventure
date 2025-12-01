@@ -16,7 +16,7 @@
         <javafx.version>20</javafx.version>
         <!-- Platform classifier for JavaFX native artifacts: win, linux, mac, mac-aarch64 -->
         <javafx.platform>win</javafx.platform>
-        <mainClass>GuiApp</mainClass>
+        <mainClass>core.GuiApp</mainClass>
     </properties>
 
     <dependencies>
@@ -64,7 +64,7 @@
                             <goal>java</goal>
                         </goals>
                         <configuration>
-                            <mainClass>RetroMultithreadingAdventure</mainClass>
+                            <mainClass>core.RetroMultithreadingAdventure</mainClass>
                         </configuration>
                     </execution>
                 </executions>

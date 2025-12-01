@@ -1,11 +1,14 @@
+package characters;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import core.GameWorld;
+import core.RetroMultithreadingAdventure;
 
 /**
  * Abstract base class for all characters in the game.
- * Demonstrates abstraction, inheritance, and shared behavior used by subclasses.
  */
 public abstract class GameCharacter extends Thread {
     protected final String characterName;
@@ -34,14 +37,10 @@ public abstract class GameCharacter extends Thread {
         battlesWon++;
     }
 
-    /**
-     * Subclasses implement this to define a single action or a sequence of actions.
-     */
     protected abstract void actOnce() throws InterruptedException;
 
     @Override
     public void run() {
-        // If a phaser is configured, participate in the part-based progression.
         if (RetroMultithreadingAdventure.partPhaser != null && RetroMultithreadingAdventure.totalParts > 0 && RetroMultithreadingAdventure.roundsPerPart > 0) {
             RetroMultithreadingAdventure.partPhaser.register();
             try {
@@ -51,7 +50,6 @@ public abstract class GameCharacter extends Thread {
                         actOnce();
                     }
                     GameWorld.log(characterName + " finished.");
-                    // Arrive at phaser and wait for main to signal continuation
                     RetroMultithreadingAdventure.partPhaser.arriveAndAwaitAdvance();
                 }
             } catch (InterruptedException e) {
@@ -63,7 +61,6 @@ public abstract class GameCharacter extends Thread {
                 } catch (Exception ignored) {}
             }
         } else {
-            // Fallback simple threaded behavior (5 rounds)
             try {
                 for (int i = 0; i < 5; i++) actOnce();
             } catch (InterruptedException e) {

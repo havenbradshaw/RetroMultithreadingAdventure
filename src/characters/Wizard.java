@@ -1,3 +1,8 @@
+package characters;
+
+import core.GameWorld;
+import core.RetroMultithreadingAdventure;
+
 public class Wizard extends GameCharacter {
     public Wizard() {
         super("Wizard");
@@ -7,15 +12,14 @@ public class Wizard extends GameCharacter {
             GameWorld.log("Wizard ponders the advice: \"" + advice + "\"");
         }
     }
+
     @Override
     protected void actOnce() throws InterruptedException {
-        // Wizard casts a spell and sometimes finds mana or a rune
         Thread.sleep(rand.nextInt(300, 800));
         boolean success = rand.nextDouble() < 0.5;
         if (success) {
             recordWin();
             GameWorld.log("Wizard conjures a potent spell and succeeds!");
-            // Try to take a mana-related loot if available
             String loot = GameWorld.takeLoot("Wizard");
             if (loot != null) {
                 inventory.add(loot);

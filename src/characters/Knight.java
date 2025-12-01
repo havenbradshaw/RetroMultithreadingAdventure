@@ -1,3 +1,7 @@
+package characters;
+
+import core.GameWorld;
+import core.RetroMultithreadingAdventure;
 import java.util.Random;
 
 public class Knight extends GameCharacter {
@@ -9,11 +13,11 @@ public class Knight extends GameCharacter {
             GameWorld.log("Knight hears a piece of advice: \"" + advice + "\"");
         }
     }
+
     @Override
     protected void actOnce() throws InterruptedException {
-        // Simulate a battle attempt
         Thread.sleep(rand.nextInt(400, 900));
-        boolean won = rand.nextDouble() < 0.6; // Knight is strong
+        boolean won = rand.nextDouble() < 0.6;
         if (won) {
             recordWin();
             GameWorld.log("Knight wins a skirmish!");
