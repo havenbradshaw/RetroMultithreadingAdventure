@@ -8,6 +8,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.geometry.Pos;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextInputDialog;
+import java.util.Optional;
 import javafx.geometry.Insets;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.Font;
@@ -82,15 +84,17 @@ public class GuiApp extends Application {
         contentBox.setMaxWidth(720);
         // Hardcode the content box background and rounded corners with slight opacity
         // Make the content box more opaque so text is easier to read and style as a parchment scroll
-        contentBox.setStyle(
-            "-fx-background-color: linear-gradient(to bottom, rgba(255,250,230,0.95) 0%, rgba(245,230,200,0.95) 100%);"
-              + " -fx-background-radius: 10;"
-              + " -fx-padding: 14 18 14 18;"
-              + " -fx-border-color: rgba(139,111,59,0.95);"
-              + " -fx-border-width: 4;"
-              + " -fx-border-radius: 12;"
-              + " -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 8, 0.0, 0, 3);"
-        );
+                contentBox.setStyle(
+                        "-fx-background-color: linear-gradient(to bottom, rgba(255,250,230,0.95) 0%, rgba(245,230,200,0.95) 100%);"
+                            + " -fx-background-radius: 12;"
+                            + " -fx-background-insets: 0;"
+                            + " -fx-padding: 14 18 14 18;"
+                            + " -fx-border-color: rgba(139,111,59,0.95);"
+                            + " -fx-border-width: 4;"
+                            + " -fx-border-radius: 12;"
+                            + " -fx-border-insets: 0;"
+                            + " -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 8, 0.0, 0, 3);"
+                );
 
         ScrollPane scrollPane = new ScrollPane(contentBox);
         // Hardcode scroll box visual styles (size + opacity + compatibility fallbacks)
@@ -178,6 +182,38 @@ public class GuiApp extends Application {
     private void startGame(Label centerLabel, Label dotLabel) {
         if (gameStarted) return;
         gameStarted = true;
+
+        // Prompt the player for optional personal names for each character.
+        // If the user provides a short name (e.g., "Arthur"), the character
+        // will be named like "Knight Arthur" as requested.
+        try {
+            TextInputDialog knightDlg = new TextInputDialog("");
+            knightDlg.setTitle("Name the Knight");
+            knightDlg.setHeaderText(null);
+            knightDlg.setContentText("Enter a personal name for the Knight (leave blank to use 'Knight'):");
+            Optional<String> k = knightDlg.showAndWait();
+            if (k.isPresent() && !k.get().trim().isEmpty()) {
+                RetroMultithreadingAdventure.knightName = "Knight " + k.get().trim();
+            }
+
+            TextInputDialog wizDlg = new TextInputDialog("");
+            wizDlg.setTitle("Name the Wizard");
+            wizDlg.setHeaderText(null);
+            wizDlg.setContentText("Enter a personal name for the Wizard (leave blank to use 'Wizard'):");
+            Optional<String> w = wizDlg.showAndWait();
+            if (w.isPresent() && !w.get().trim().isEmpty()) {
+                RetroMultithreadingAdventure.wizardName = "Wizard " + w.get().trim();
+            }
+
+            TextInputDialog thiefDlg = new TextInputDialog("");
+            thiefDlg.setTitle("Name the Thief");
+            thiefDlg.setHeaderText(null);
+            thiefDlg.setContentText("Enter a personal name for the Thief (leave blank to use 'Thief'):");
+            Optional<String> t = thiefDlg.showAndWait();
+            if (t.isPresent() && !t.get().trim().isEmpty()) {
+                RetroMultithreadingAdventure.thiefName = "Thief " + t.get().trim();
+            }
+        } catch (Exception ignored) {}
 
         GameWorld.uiLogger = m -> {
             try { uiQueue.put(m == null ? "" : m); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }

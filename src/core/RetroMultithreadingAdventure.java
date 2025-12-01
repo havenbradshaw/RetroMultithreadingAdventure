@@ -19,6 +19,10 @@ public class RetroMultithreadingAdventure extends Thread {
     private static final Object arrivedMonitor = new Object();
     public static int totalParts = 0;
     public static int roundsPerPart = 0;
+    // Allow the UI to provide custom names for the characters before the game starts
+    public static String knightName = "Knight";
+    public static String wizardName = "Wizard";
+    public static String thiefName = "Thief";
 
     public static void main(String[] args) {
         runGame();
@@ -40,9 +44,9 @@ public class RetroMultithreadingAdventure extends Thread {
         partPhaser = new Phaser(1);
 
         List<GameCharacter> characters = new ArrayList<>();
-        characters.add(new Knight());
-        characters.add(new Wizard());
-        characters.add(new Thief());
+        characters.add(new Knight(knightName));
+        characters.add(new Wizard(wizardName));
+        characters.add(new Thief(thiefName));
 
         characters.forEach(Thread::start);
 
@@ -66,7 +70,7 @@ public class RetroMultithreadingAdventure extends Thread {
         }
 
         String summary = characters.stream()
-                .map(c -> c.getCharacterName() + ": wins=" + c.getBattlesWon() + ", items=" + c.getInventory().size())
+                .map(c -> c.getCharacterName() + ": wins =" + c.getBattlesWon() + ", items =" + c.getInventory().size())
                 .collect(Collectors.joining(" | "));
 
         GameWorld.log("--- Adventure Summary ---");

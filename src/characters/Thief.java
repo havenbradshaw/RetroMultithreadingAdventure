@@ -4,16 +4,16 @@ import core.GameWorld;
 import core.RetroMultithreadingAdventure;
 
 public class Thief extends GameCharacter {
-    public Thief() {
-        super("Thief");
-    }
+    public Thief() { this("Thief"); }
+
+    public Thief(String name) { super(name); }
 
     @Override
     public void run() {
         String advice = RetroMultithreadingAdventure.latestAdvice;
-        GameWorld.log("The desperate Thief sets out on a quest to slay the dragon!");
+        GameWorld.log("The desperate " + getCharacterName() + " sets out on a quest to slay the dragon!");
         if (advice != null) {
-            GameWorld.log("Thief quietly notes the advice: \"" + advice + "\"");
+            GameWorld.log(getCharacterName() + " quietly notes the advice: \"" + advice + "\"");
         }
 
         if (RetroMultithreadingAdventure.partPhaser != null && RetroMultithreadingAdventure.totalParts > 0 && RetroMultithreadingAdventure.roundsPerPart > 0) {
@@ -42,9 +42,9 @@ public class Thief extends GameCharacter {
         }
 
         if (advice != null && advice.toLowerCase().contains("quiet")) {
-            GameWorld.log("The Thief returns victorious and remarkably silent about it.");
+            GameWorld.log(getCharacterName() + " returns victorious and remarkably silent about it.");
         } else {
-            GameWorld.log("The Thief returns victorious!");
+            GameWorld.log(getCharacterName() + " returns victorious!");
         }
     }
 

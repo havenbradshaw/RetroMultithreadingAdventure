@@ -4,12 +4,14 @@ import core.GameWorld;
 import core.RetroMultithreadingAdventure;
 
 public class Wizard extends GameCharacter {
-    public Wizard() {
-        super("Wizard");
-        GameWorld.log("The powerful Wizard sets out on a quest to slay the dragon!");
+    public Wizard() { this("Wizard"); }
+
+    public Wizard(String name) {
+        super(name);
+        GameWorld.log("The powerful " + getCharacterName() + " sets out on a quest to slay the dragon!");
         String advice = RetroMultithreadingAdventure.latestAdvice;
         if (advice != null) {
-            GameWorld.log("Wizard ponders the advice: \"" + advice + "\"");
+            GameWorld.log(getCharacterName() + " ponders the advice: \"" + advice + "\"");
         }
     }
 
@@ -19,14 +21,14 @@ public class Wizard extends GameCharacter {
         boolean success = rand.nextDouble() < 0.5;
         if (success) {
             recordWin();
-            GameWorld.log("Wizard conjures a potent spell and succeeds!");
-            String loot = GameWorld.takeLoot("Wizard");
+            GameWorld.log(getCharacterName() + " conjures a potent spell and succeeds!");
+            String loot = GameWorld.takeLoot(getCharacterName());
             if (loot != null) {
                 inventory.add(loot);
-                GameWorld.log("Wizard collects: " + loot);
+                GameWorld.log(getCharacterName() + " collects: " + loot);
             }
         } else {
-            GameWorld.log("Wizard's spell fizzles but knowledge is gained.");
+            GameWorld.log(getCharacterName() + "'s spell fizzles but knowledge is gained.");
         }
     }
 }
