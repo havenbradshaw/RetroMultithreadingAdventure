@@ -50,6 +50,8 @@ public abstract class GameCharacter extends Thread {
                         actOnce();
                     }
                     GameWorld.log(characterName + " finished.");
+                    // Notify the main thread that this character has arrived
+                    RetroMultithreadingAdventure.notifyCharacterArrived();
                     RetroMultithreadingAdventure.partPhaser.arriveAndAwaitAdvance();
                 }
             } catch (InterruptedException e) {

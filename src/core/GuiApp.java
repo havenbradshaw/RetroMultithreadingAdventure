@@ -18,6 +18,10 @@ import java.io.File;
 import java.net.URL;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
 
 /**
  * Simple JavaFX UI wrapper for the RetroMultithreadingAdventure.
@@ -186,12 +190,7 @@ public class GuiApp extends Application {
                     if ("__EXIT__".equals(queuedMsg)) break;
 
                     if ("__NEXT_SIGNAL__".equals(queuedMsg)) {
-                        for (int i = 1; i <= 3; i++) {
-                            final String dots = new String(new char[i]).replace('\0', '.');
-                            Platform.runLater(() -> dotLabel.setText(dots));
-                            Thread.sleep(1000);
-                        }
-                        Platform.runLater(() -> dotLabel.setText(""));
+                        playDotAnimationAndWait(dotLabel, 3, 1000);
                         RetroMultithreadingAdventure.continueToNextPart();
                         continue;
                     }
@@ -199,12 +198,7 @@ public class GuiApp extends Application {
                     final String display = queuedMsg;
                     Platform.runLater(() -> { centerLabel.setText(display); dotLabel.setText(""); });
 
-                    for (int i = 1; i <= 3; i++) {
-                        final String dots = new String(new char[i]).replace('\0', '.');
-                        Platform.runLater(() -> dotLabel.setText(dots));
-                        Thread.sleep(1000);
-                    }
-                    Platform.runLater(() -> dotLabel.setText(""));
+                    playDotAnimationAndWait(dotLabel, 3, 1000);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
@@ -216,6 +210,35 @@ public class GuiApp extends Application {
             RetroMultithreadingAdventure.runGame();
             Platform.runLater(() -> centerLabel.setText("Adventure complete. Restart the app to play again."));
         }, "GameRunner").start();
+    }
+
+    private void playDotAnimationAndWait(Label dotLabel, int steps, long intervalMillis) throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+        Platform.runLater(() -> {
+            try {
+                Timeline t = new Timeline();
+                for (int i = 1; i <= steps; i++) {
+                    final String dots = new String(new char[i]).replace('\0', '.');
+                    KeyFrame kf = new KeyFrame(Duration.millis(intervalMillis * (i - 1)), e -> dotLabel.setText(dots));
+                    t.getKeyFrames().add(kf);
+                }
+                // clear after the last frame
+                KeyFrame clear = new KeyFrame(Duration.millis(intervalMillis * steps), e -> dotLabel.setText(""));
+                t.getKeyFrames().add(clear);
+                t.setOnFinished(e -> latch.countDown());
+                t.play();
+            } catch (Exception ex) {
+                latch.countDown();
+            }
+        });
+
+        // Wait for the timeline to finish (or interruption)
+        try {
+            latch.await();
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw ie;
+        }
     }
 
     public static void main(String[] args) { launch(args); }
