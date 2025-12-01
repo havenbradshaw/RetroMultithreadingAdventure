@@ -13,7 +13,16 @@ public class ApiClient {
 
     @SuppressWarnings("deprecation")
     public static String fetchAdvice() {
-        String endpoint = "https://api.adviceslip.com/advice";
+        // Use API Ninjas quotes endpoint when an API key is provided.
+        // Requires an API key provided via the environment variable `API_NINJAS_KEY`
+        // or system property `api.ninjas.key`. If missing, fall back to local quotes.
+        String endpoint = "https://api.api-ninjas.com/v2/quotes";
+        String apiKey = System.getenv("API_NINJAS_KEY");
+        if (apiKey == null || apiKey.isBlank()) apiKey = System.getProperty("api.ninjas.key");
+        if (apiKey == null || apiKey.isBlank()) {
+            // API key not available; return a local fallback immediately
+            return getLocalFallback();
+        }
         HttpURLConnection conn = null;
         BufferedReader reader = null;
         try {
@@ -23,6 +32,8 @@ public class ApiClient {
             conn.setReadTimeout(3000);
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Accept", "application/json");
+            conn.setRequestProperty("User-Agent", "RetroMultithreadingAdventure/1.0");
+            conn.setRequestProperty("X-Api-Key", apiKey);
 
             int code = conn.getResponseCode();
             if (code != 200) {
@@ -37,26 +48,58 @@ public class ApiClient {
             }
 
             String json = sb.toString();
-            String key = "\"advice\":";
-            int idx = json.indexOf(key);
-            if (idx >= 0) {
-                int start = idx + key.length();
-                int firstQuote = json.indexOf('"', start);
-                if (firstQuote >= 0) {
-                    int secondQuote = json.indexOf('"', firstQuote + 1);
-                    if (secondQuote > firstQuote) {
-                        return json.substring(firstQuote + 1, secondQuote);
+            // API Ninjas returns an array of objects like: [{"quote":"...","author":"..."},...]
+            // Try several common keys returned by quote APIs (including API Ninjas's "quote")
+            String[] keys = new String[]{"\"quote\":", "\"content\":", "\"text\":", "\"q\":", "\"quoteText\":", "\"data\":"};
+            for (String key : keys) {
+                int idx = json.indexOf(key);
+                if (idx >= 0) {
+                    int start = idx + key.length();
+                    int firstQuote = json.indexOf('"', start);
+                    if (firstQuote >= 0) {
+                        int secondQuote = json.indexOf('"', firstQuote + 1);
+                        if (secondQuote > firstQuote) {
+                            return json.substring(firstQuote + 1, secondQuote);
+                        }
                     }
                 }
             }
-            return null;
+
+            // As a last resort, try to return the whole JSON stripped of braces
+            String trimmed = json.trim();
+            if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+                String inner = trimmed.substring(1, trimmed.length() - 1).trim();
+                if (!inner.isEmpty()) {
+                    // remove quotes
+                    return inner.replaceAll("\\\"", "").trim();
+                }
+            }
+            // If parsing failed, fall back to a safe local quote
+            return getLocalFallback();
         } catch (IOException e) {
-            return null;
+            return getLocalFallback();
         } finally {
             try {
                 if (reader != null) reader.close();
             } catch (IOException ignored) {}
             if (conn != null) conn.disconnect();
         }
+    }
+
+    private static String getLocalFallback() {
+        String[] fallback = new String[] {
+            "Fortune favors the bold.",
+            "Keep your friends close and your code well-documented.",
+            "A small step thoroughly tested is better than a giant leap unproven.",
+            "Clarity is a superpower in a messy codebase.",
+            "Patience and persistence unlock the hardest problems.",
+            "Read the error — it often points the way forward.",
+            "Good design trumps clever tricks.",
+            "Measure twice, run once.",
+            "Refactor early, refactor often.",
+            "Keep things simple until complexity is needed."
+        };
+        int idx = (int) (Math.random() * fallback.length);
+        return fallback[idx];
     }
 }

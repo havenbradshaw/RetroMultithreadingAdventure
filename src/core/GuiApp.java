@@ -12,6 +12,7 @@ import javafx.geometry.Insets;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import java.io.File;
 import java.net.URL;
@@ -44,23 +45,48 @@ public class GuiApp extends Application {
 
         // Hardcoded design choices (font families, sizes, text color)
         String pixelFamilyFallback = "'Press Start 2P', 'Minecraftia', 'Courier New', monospace";
-        // Try to load bundled pixel font; if present use it, otherwise fall back to family + sizes
-        URL fontRes = getClass().getResource("/fonts/PressStart2P-Regular.ttf");
-        if (fontRes != null) {
-            Font loaded = Font.loadFont(fontRes.toExternalForm(), 18);
-            if (loaded != null) centerLabel.setFont(loaded);
+        // Prefer the developer-provided 'src/resources' font first, then classpath, then other dev locations
+        Font loadedFont = null;
+        File repoFont = new File("src/resources/PressStart2P-Regular.ttf");
+        if (!repoFont.exists()) repoFont = new File("src/resources/fonts/PressStart2P-Regular.ttf");
+        if (repoFont.exists()) {
+            loadedFont = Font.loadFont(repoFont.toURI().toString(), 18);
+        } else {
+            URL fontRes = getClass().getResource("/fonts/PressStart2P-Regular.ttf");
+            if (fontRes != null) loadedFont = Font.loadFont(fontRes.toExternalForm(), 18);
+            else {
+                File fontFile = new File("src/fonts/PressStart2P-Regular.ttf");
+                if (fontFile.exists()) loadedFont = Font.loadFont(fontFile.toURI().toString(), 18);
+            }
         }
-        
+
+        String effectiveFontFamily = "Press Start 2P"; // preferred family name
+        if (loadedFont != null) {
+            effectiveFontFamily = loadedFont.getFamily();
+            // Apply loaded font with explicit sizes to the labels
+            centerLabel.setFont(Font.font(effectiveFontFamily, 18));
+            dotLabel.setFont(Font.font(effectiveFontFamily, 24));
+        }
+
         // Center label uses chunky retro text at 18px
-        centerLabel.setStyle(String.format("-fx-font-family: %s; -fx-font-size: 18px; -fx-text-fill: #1b1001; -fx-font-weight: normal;", pixelFamilyFallback));
+        centerLabel.setStyle(String.format("-fx-font-family: '%s'; -fx-font-size: 18px; -fx-text-fill: #1b1001; -fx-font-weight: normal;", effectiveFontFamily));
         // Dot buffer is larger (24px) and centered
-        dotLabel.setStyle(String.format("-fx-font-family: %s; -fx-font-size: 24px; -fx-text-fill: #1b1001; -fx-font-weight: bold;", pixelFamilyFallback));
+        dotLabel.setStyle(String.format("-fx-font-family: '%s'; -fx-font-size: 24px; -fx-text-fill: #1b1001; -fx-font-weight: bold;", effectiveFontFamily));
         dotLabel.setMaxWidth(440);
         dotLabel.setAlignment(Pos.CENTER);
 
         contentBox.setMaxWidth(720);
         // Hardcode the content box background and rounded corners with slight opacity
-        contentBox.setStyle("-fx-background-color: rgba(250,245,230,0.8); background-color: rgba(250,245,230,0.8); -fx-background-radius: 8; -fx-padding: 12;");
+        // Make the content box more opaque so text is easier to read and style as a parchment scroll
+        contentBox.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, rgba(255,250,230,0.95) 0%, rgba(245,230,200,0.95) 100%);"
+              + " -fx-background-radius: 10;"
+              + " -fx-padding: 14 18 14 18;"
+              + " -fx-border-color: rgba(139,111,59,0.95);"
+              + " -fx-border-width: 4;"
+              + " -fx-border-radius: 12;"
+              + " -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 8, 0.0, 0, 3);"
+        );
 
         ScrollPane scrollPane = new ScrollPane(contentBox);
         // Hardcode scroll box visual styles (size + opacity + compatibility fallbacks)
@@ -70,12 +96,14 @@ public class GuiApp extends Application {
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
-        scrollPane.setMaxWidth(760);
-        scrollPane.setMaxHeight(170);
-        scrollPane.setPrefWidth(720);
-        scrollPane.setPrefHeight(150);
+        // Make the scroll box shorter to look like a small parchment scroll
+        scrollPane.setMaxWidth(700);
+        scrollPane.setMaxHeight(140);
+        scrollPane.setPrefWidth(660);
+        scrollPane.setPrefHeight(120);
         // Inline style: include both standard and -fx properties for compatibility
-        scrollPane.setStyle("background-color: rgba(250,245,230,0.8); -fx-background-color: rgba(250,245,230,0.8); max-height: 170px; -fx-max-height: 170px; opacity: 0.98;");
+        // Leave the scroll pane background transparent but ensure the control isn't dimmed
+        scrollPane.setStyle("background-color: transparent; -fx-background-color: transparent; max-height: 140px; -fx-max-height: 140px; opacity: 1.0; -fx-background-insets: 0;");
 
         BorderPane root = new BorderPane();
         root.getStyleClass().add("pixel-bg");
@@ -83,7 +111,9 @@ public class GuiApp extends Application {
         String img = null;
         if (bgUrl != null) img = bgUrl.toExternalForm();
         else {
-            File f = new File("src/pixel-bg.webp");
+            // Prefer developer-provided resources in src/resources
+            File f = new File("src/resources/pixel-bg.webp");
+            if (!f.exists()) f = new File("src/pixel-bg.webp");
             if (f.exists()) img = f.toURI().toString();
         }
 
@@ -105,6 +135,20 @@ public class GuiApp extends Application {
         root.setCenter(scrollPane);
 
         Scene scene = new Scene(root, 800, 600);
+        // Hardcode the default font for the scene/root so all controls inherit the pixel font
+        try {
+            String fontFamilySpec;
+            if (loadedFont != null) {
+                // use the loaded font's family name
+                fontFamilySpec = String.format("-fx-font-family: '%s'; -fx-font-size: 18px;", loadedFont.getName());
+            } else {
+                fontFamilySpec = String.format("-fx-font-family: %s; -fx-font-size: 18px;", pixelFamilyFallback);
+            }
+            // Append the font spec to the root's style so it applies globally
+            root.setStyle(root.getStyle() + " " + fontFamilySpec);
+        } catch (Exception ignored) {
+        }
+
         // Intentionally not loading external `ui.css`; all design choices are hardcoded here.
 
         scene.setOnMouseClicked(e -> { if (!gameStarted) startGame(centerLabel, dotLabel); });
@@ -113,6 +157,18 @@ public class GuiApp extends Application {
         stage.setTitle("Retro Multithreading Adventure - GUI");
         stage.setScene(scene);
         stage.show();
+
+        // Ensure the ScrollPane viewport itself is transparent (some JavaFX skins paint a viewport)
+        Platform.runLater(() -> {
+            try {
+                Node viewport = scene.lookup(".scroll-pane .viewport");
+                if (viewport == null) viewport = scene.lookup(".viewport");
+                if (viewport != null) {
+                    viewport.setStyle("background-color: transparent; -fx-background-color: transparent; -fx-background-insets: 0;");
+                }
+            } catch (Exception ignored) {
+            }
+        });
     }
 
     private void startGame(Label centerLabel, Label dotLabel) {
