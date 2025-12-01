@@ -51,7 +51,7 @@ public class GuiApp extends Application {
 
         // Hardcoded design choices (font families, sizes, text color)
         String pixelFamilyFallback = "'Press Start 2P', 'Minecraftia', 'Courier New', monospace";
-        // Prefer the developer-provided 'src/resources' font first, then classpath, then other dev locations
+        // Prefer the developer-provided 'src/resources' Press Start 2P font first, then classpath, then other dev locations
         Font loadedFont = null;
         File repoFont = new File("src/resources/PressStart2P-Regular.ttf");
         if (!repoFont.exists()) repoFont = new File("src/resources/fonts/PressStart2P-Regular.ttf");
