@@ -29,11 +29,9 @@ public class GuiApp extends Application {
     public void start(Stage stage) {
         Label centerLabel = new Label("Click or press Enter to start the adventure");
         centerLabel.setId("centerLabel");
-        centerLabel.getStyleClass().add("center-text");
 
         Label dotLabel = new Label("");
         dotLabel.setId("dotBuffer");
-        dotLabel.getStyleClass().add("dot-buffer");
 
         VBox contentBox = new VBox(8, centerLabel, dotLabel);
         contentBox.setAlignment(Pos.CENTER);
@@ -44,37 +42,40 @@ public class GuiApp extends Application {
         centerLabel.setAlignment(Pos.CENTER);
         centerLabel.setTextAlignment(TextAlignment.CENTER);
 
-        String pixelFontStyleFallback = "-fx-font-family: 'Press Start 2P', 'Minecraftia', 'Courier New', monospace; -fx-font-size: 18px; -fx-text-fill: #1b1001ff;";
+        // Hardcoded design choices (font families, sizes, text color)
+        String pixelFamilyFallback = "'Press Start 2P', 'Minecraftia', 'Courier New', monospace";
+        // Try to load bundled pixel font; if present use it, otherwise fall back to family + sizes
         URL fontRes = getClass().getResource("/fonts/PressStart2P-Regular.ttf");
         if (fontRes != null) {
             Font loaded = Font.loadFont(fontRes.toExternalForm(), 18);
-            if (loaded != null) {
-                centerLabel.setFont(loaded);
-                dotLabel.setFont(loaded);
-            } else {
-                centerLabel.setStyle(pixelFontStyleFallback + " -fx-font-weight: normal;");
-                dotLabel.setStyle(pixelFontStyleFallback + " -fx-font-weight: normal;");
-            }
-        } else {
-            centerLabel.setStyle(pixelFontStyleFallback + " -fx-font-weight: normal;");
-            dotLabel.setStyle(pixelFontStyleFallback + " -fx-font-weight: normal;");
+            if (loaded != null) centerLabel.setFont(loaded);
         }
-
+        
+        // Center label uses chunky retro text at 18px
+        centerLabel.setStyle(String.format("-fx-font-family: %s; -fx-font-size: 18px; -fx-text-fill: #1b1001; -fx-font-weight: normal;", pixelFamilyFallback));
+        // Dot buffer is larger (24px) and centered
+        dotLabel.setStyle(String.format("-fx-font-family: %s; -fx-font-size: 24px; -fx-text-fill: #1b1001; -fx-font-weight: bold;", pixelFamilyFallback));
         dotLabel.setMaxWidth(440);
         dotLabel.setAlignment(Pos.CENTER);
 
         contentBox.setMaxWidth(720);
+        // Hardcode the content box background and rounded corners with slight opacity
+        contentBox.setStyle("-fx-background-color: rgba(250,245,230,0.8); background-color: rgba(250,245,230,0.8); -fx-background-radius: 8; -fx-padding: 12;");
 
         ScrollPane scrollPane = new ScrollPane(contentBox);
-        scrollPane.getStyleClass().add("scroll-box");
+        // Hardcode scroll box visual styles (size + opacity + compatibility fallbacks)
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
+
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
         scrollPane.setMaxWidth(760);
-        scrollPane.setMaxHeight(200);
+        scrollPane.setMaxHeight(170);
         scrollPane.setPrefWidth(720);
-        scrollPane.setPrefHeight(180);
+        scrollPane.setPrefHeight(150);
+        // Inline style: include both standard and -fx properties for compatibility
+        scrollPane.setStyle("background-color: rgba(250,245,230,0.8); -fx-background-color: rgba(250,245,230,0.8); max-height: 170px; -fx-max-height: 170px; opacity: 0.98;");
 
         BorderPane root = new BorderPane();
         root.getStyleClass().add("pixel-bg");
@@ -87,6 +88,7 @@ public class GuiApp extends Application {
         }
 
         if (img != null) {
+            // Prefer the pixelated background image when available
             root.setStyle(
                 "-fx-background-image: url('" + img + "');"
                 + " -fx-background-repeat: no-repeat;"
@@ -94,17 +96,16 @@ public class GuiApp extends Application {
                 + " -fx-background-size: cover;"
             );
         } else {
-            root.setStyle("-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%);");
+            // Fallback gradient background (standard and -fx versions)
+            root.setStyle
+            ("background-color: linear-gradient(to bottom, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%); -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%);");
         }
 
-        scrollPane.setStyle(scrollPane.getStyle() + "");
+        // contentBox and scrollPane are styled inline above; no external stylesheet required
         root.setCenter(scrollPane);
 
         Scene scene = new Scene(root, 800, 600);
-        URL css = getClass().getResource("/ui.css");
-        if (css != null) {
-            scene.getStylesheets().add(css.toExternalForm());
-        }
+        // Intentionally not loading external `ui.css`; all design choices are hardcoded here.
 
         scene.setOnMouseClicked(e -> { if (!gameStarted) startGame(centerLabel, dotLabel); });
         scene.setOnKeyPressed(e -> { if (e.getCode() == KeyCode.ENTER && !gameStarted) startGame(centerLabel, dotLabel); });

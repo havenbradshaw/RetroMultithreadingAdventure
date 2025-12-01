@@ -1,6 +1,7 @@
 package core;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -10,6 +11,7 @@ import java.net.URL;
  */
 public class ApiClient {
 
+    @SuppressWarnings("deprecation")
     public static String fetchAdvice() {
         String endpoint = "https://api.adviceslip.com/advice";
         HttpURLConnection conn = null;
@@ -48,12 +50,12 @@ public class ApiClient {
                 }
             }
             return null;
-        } catch (Exception e) {
+        } catch (IOException e) {
             return null;
         } finally {
             try {
                 if (reader != null) reader.close();
-            } catch (Exception ignored) {}
+            } catch (IOException ignored) {}
             if (conn != null) conn.disconnect();
         }
     }

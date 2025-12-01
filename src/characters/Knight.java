@@ -2,7 +2,6 @@ package characters;
 
 import core.GameWorld;
 import core.RetroMultithreadingAdventure;
-import java.util.Random;
 
 public class Knight extends GameCharacter {
     public Knight() {

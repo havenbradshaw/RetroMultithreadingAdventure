@@ -2,8 +2,6 @@ package characters;
 
 import core.GameWorld;
 import core.RetroMultithreadingAdventure;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 public class Thief extends GameCharacter {
     public Thief() {

@@ -47,7 +47,7 @@ public class RetroMultithreadingAdventure extends Thread {
         for (int part = 1; part <= totalParts; part++) {
             int expectedArrivals = Math.max(0, partPhaser.getRegisteredParties() - 1);
             while (partPhaser.getArrivedParties() < expectedArrivals) {
-                try { Thread.sleep(50); } catch (InterruptedException ignored) {}
+                try {Thread.sleep(50); } catch (InterruptedException ignored) {}
             }
 
             GameWorld.signalNextToUi();
