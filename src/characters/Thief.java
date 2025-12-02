@@ -6,45 +6,12 @@ import core.RetroMultithreadingAdventure;
 public class Thief extends GameCharacter {
     public Thief() { this("Thief"); }
 
-    public Thief(String name) { super(name); }
-
-    @Override
-    public void run() {
+    public Thief(String name) {
+        super(name);
         String advice = RetroMultithreadingAdventure.latestAdvice;
         GameWorld.log("The desperate " + getCharacterName() + " sets out on a quest to slay the dragon!");
         if (advice != null) {
             GameWorld.log(getCharacterName() + " quietly notes the advice: \"" + advice + "\"");
-        }
-
-        if (RetroMultithreadingAdventure.partPhaser != null && RetroMultithreadingAdventure.totalParts > 0 && RetroMultithreadingAdventure.roundsPerPart > 0) {
-            RetroMultithreadingAdventure.partPhaser.register();
-            try {
-                for (int part = 1; part <= RetroMultithreadingAdventure.totalParts; part++) {
-                    for (int r = 0; r < RetroMultithreadingAdventure.roundsPerPart; r++) {
-                        actOnce();
-                    }
-                    GameWorld.log(getCharacterName() + " finished.");
-                    RetroMultithreadingAdventure.partPhaser.arriveAndAwaitAdvance();
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                GameWorld.log("Thief's adventure was interrupted!");
-            } finally {
-                try { RetroMultithreadingAdventure.partPhaser.arriveAndDeregister(); } catch (Exception ignored) {}
-            }
-        } else {
-            try {
-                for (int i = 0; i < 5; i++) actOnce();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                GameWorld.log("Thief's adventure was interrupted!");
-            }
-        }
-
-        if (advice != null && advice.toLowerCase().contains("quiet")) {
-            GameWorld.log(getCharacterName() + " returns victorious and remarkably silent about it.");
-        } else {
-            GameWorld.log(getCharacterName() + " returns victorious!");
         }
     }
 
@@ -57,19 +24,21 @@ public class Thief extends GameCharacter {
                 String item = GameWorld.lootPool.poll();
                 if (item != null) {
                     inventory.add(item);
-                    GameWorld.log("Thief quietly steals: " + item);
+                    GameWorld.log(getCharacterName() + " quietly steals: " + item);
                     stole = true;
                 }
             } finally {
                 GameWorld.lootLock.unlock();
             }
         } else {
-            GameWorld.log("Thief couldn't get close enough to the loot this round.");
+            GameWorld.log(getCharacterName() + " couldn't get close enough to the loot this round.");
         }
 
         if (stole && rand.nextDouble() < 0.4) {
             recordWin();
-            GameWorld.log("Thief successfully escapes with the prize.");
+            GameWorld.log(getCharacterName() + " successfully escapes with the prize.");
         }
     }
 }
+
+
