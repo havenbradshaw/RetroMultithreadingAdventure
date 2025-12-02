@@ -12,12 +12,18 @@ import core.RetroMultithreadingAdventure;
  */
 public abstract class GameCharacter extends Thread {
     protected final String characterName;
+    protected final String initialAdvice;
     protected final List<String> inventory = Collections.synchronizedList(new ArrayList<>());
     protected final Random rand = new Random();
     protected int battlesWon = 0;
 
     public GameCharacter(String name) {
+        this(name, null);
+    }
+
+    public GameCharacter(String name, String advice) {
         this.characterName = name;
+        this.initialAdvice = advice;
         setName(name);
     }
 
@@ -70,5 +76,17 @@ public abstract class GameCharacter extends Thread {
                 GameWorld.log(characterName + "'s adventure was interrupted!");
             }
         }
+
+        // Hook for subclasses to perform actions after the run finishes
+        try {
+            onReturn();
+        } catch (Exception ignored) {}
+    }
+
+    /**
+     * Called after the character has completed its run. Subclasses may override.
+     */
+    protected void onReturn() {
+        // default no-op
     }
 }

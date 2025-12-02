@@ -22,8 +22,7 @@ import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.input.KeyCode;
-import java.io.File;
-import java.net.URL;
+ 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -57,20 +56,8 @@ public class GuiApp extends Application {
 
         // Hardcoded design choices (font families, sizes, text color)
         String pixelFamilyFallback = "'Press Start 2P', 'Minecraftia', 'Courier New', monospace";
-        // Prefer the developer-provided 'src/resources' Press Start 2P font first, then classpath, then other dev locations
-        Font loadedFont = null;
-        File repoFont = new File("src/resources/PressStart2P-Regular.ttf");
-        if (!repoFont.exists()) repoFont = new File("src/resources/fonts/PressStart2P-Regular.ttf");
-        if (repoFont.exists()) {
-            loadedFont = Font.loadFont(repoFont.toURI().toString(), 18);
-        } else {
-            URL fontRes = getClass().getResource("/fonts/PressStart2P-Regular.ttf");
-            if (fontRes != null) loadedFont = Font.loadFont(fontRes.toExternalForm(), 18);
-            else {
-                File fontFile = new File("src/fonts/PressStart2P-Regular.ttf");
-                if (fontFile.exists()) loadedFont = Font.loadFont(fontFile.toURI().toString(), 18);
-            }
-        }
+        // Centralized font loading via ResourceUtil (classpath or src/resources)
+        Font loadedFont = ResourceUtil.loadFont(18.0, "PressStart2P-Regular.ttf", "fonts/PressStart2P-Regular.ttf", "PressStart2P-Regular.ttf");
 
         String effectiveFontFamily = "Press Start 2P"; // preferred family name
         if (loadedFont != null) {
@@ -122,50 +109,23 @@ public class GuiApp extends Application {
         BorderPane root = new BorderPane();
         root.getStyleClass().add("pixel-bg");
         // Prefer a developer-provided `New_art` file in resources (check common extensions),
-        // falling back to the legacy pixel background.
-        String img = null;
-        String[] candidates = {"New_art.jpg","new_art.jpg","New_art.png","new_art.png","New_art.webp","new_art.webp","New_art.avif","new_art.avif"};
-        try {
-            for (String name : candidates) {
-                URL res = getClass().getResource("/" + name);
-                if (res != null) { img = res.toExternalForm(); break; }
-                File f = new File("src/resources/" + name);
-                if (!f.exists()) f = new File("src/" + name);
-                if (f.exists()) { img = f.toURI().toString(); break; }
-            }
-        } catch (Exception ignored) {}
+        // falling back to the legacy pixel background or a green gradient.
+        Image bgImg = ResourceUtil.loadImage(
+                "New_art.jpg","new_art.jpg","New_art.png","new_art.png",
+                "New_art.webp","new_art.webp","New_art.avif","new_art.avif",
+                "pixel-bg.webp","pixel-bg.png");
 
-        if (img == null) {
-            URL bgUrl = getClass().getResource("/pixel-bg.webp");
-            if (bgUrl != null) img = bgUrl.toExternalForm();
-            else {
-                File f = new File("src/resources/pixel-bg.webp");
-                if (!f.exists()) f = new File("src/pixel-bg.webp");
-                if (f.exists()) img = f.toURI().toString();
-            }
-        }
-
-        if (img != null) {
-            // Try to load the image via JavaFX Image API. Some formats (e.g. AVIF)
-            // may not be supported by JavaFX on this platform; if loading fails
-            // we'll fall back to the gradient background.
+        String gradientFallback = "background-color: linear-gradient(to bottom, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%); -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%);";
+        if (bgImg != null) {
             try {
-                Image bgImg = new Image(img, 0, 0, true, true);
-                if (!bgImg.isError()) {
-                    // Use 'cover' so the image fills the view and avoids letterboxing
-                    BackgroundSize bgSize = new BackgroundSize(100, 100, true, true, false, true); // cover
-                    BackgroundImage bimg = new BackgroundImage(bgImg, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, bgSize);
-                    root.setBackground(new Background(bimg));
-                } else {
-                    // fallback gradient
-                    root.setStyle("background-color: linear-gradient(to bottom, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%); -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%);");
-                }
+                BackgroundSize bgSize = new BackgroundSize(100, 100, true, true, false, true); // cover
+                BackgroundImage bimg = new BackgroundImage(bgImg, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, bgSize);
+                root.setBackground(new Background(bimg));
             } catch (Exception ex) {
-                root.setStyle("background-color: linear-gradient(to bottom, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%); -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%);");
+                root.setStyle(gradientFallback);
             }
         } else {
-            // Fallback gradient background (standard and -fx versions)
-            root.setStyle("background-color: linear-gradient(to bottom, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%); -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%);");
+            root.setStyle(gradientFallback);
         }
 
         // contentBox and scrollPane are styled inline above; no external stylesheet required
@@ -221,27 +181,60 @@ public class GuiApp extends Application {
             knightDlg.setHeaderText(null);
             knightDlg.setContentText("Enter a personal name for the Knight (leave blank to use 'Knight'):");
             Optional<String> k = knightDlg.showAndWait();
-            if (k.isPresent() && !k.get().trim().isEmpty()) {
-                RetroMultithreadingAdventure.knightName = "Knight " + k.get().trim();
-            }
+            String kname = k.isPresent() && !k.get().trim().isEmpty() ? "Knight " + k.get().trim() : "Knight";
 
             TextInputDialog wizDlg = new TextInputDialog("");
             wizDlg.setTitle("Name the Wizard");
             wizDlg.setHeaderText(null);
             wizDlg.setContentText("Enter a personal name for the Wizard (leave blank to use 'Wizard'):");
             Optional<String> w = wizDlg.showAndWait();
-            if (w.isPresent() && !w.get().trim().isEmpty()) {
-                RetroMultithreadingAdventure.wizardName = "Wizard " + w.get().trim();
-            }
+            String wname = w.isPresent() && !w.get().trim().isEmpty() ? "Wizard " + w.get().trim() : "Wizard";
 
             TextInputDialog thiefDlg = new TextInputDialog("");
             thiefDlg.setTitle("Name the Thief");
             thiefDlg.setHeaderText(null);
             thiefDlg.setContentText("Enter a personal name for the Thief (leave blank to use 'Thief'):");
             Optional<String> t = thiefDlg.showAndWait();
-            if (t.isPresent() && !t.get().trim().isEmpty()) {
-                RetroMultithreadingAdventure.thiefName = "Thief " + t.get().trim();
-            }
+            String tname = t.isPresent() && !t.get().trim().isEmpty() ? "Thief " + t.get().trim() : "Thief";
+
+            // fetch advice early and build a GameConfig to pass into the game runner
+            String advice = ApiClient.fetchAdvice();
+            core.GameConfig cfg = new core.GameConfig(3, 2, kname, wname, tname, advice);
+            final core.GameConfig finalCfg = cfg;
+
+            GameWorld.uiLogger = m -> {
+                try { uiQueue.put(m == null ? "" : m); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+            };
+
+            new Thread(() -> {
+                while (true) {
+                    try {
+                        String queuedMsg = uiQueue.take();
+                        if ("__EXIT__".equals(queuedMsg)) break;
+
+                        if ("__NEXT_SIGNAL__".equals(queuedMsg)) {
+                            playDotAnimationAndWait(dotLabel, 3, 1000);
+                            RetroMultithreadingAdventure.continueToNextPart();
+                            continue;
+                        }
+
+                        final String display = queuedMsg;
+                        Platform.runLater(() -> { centerLabel.setText(display); dotLabel.setText(""); });
+
+                        playDotAnimationAndWait(dotLabel, 3, 1000);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }, "UiQueueConsumer").start();
+
+            new Thread(() -> {
+                RetroMultithreadingAdventure.runGame(finalCfg);
+                Platform.runLater(() -> centerLabel.setText("Adventure complete. Restart the app to play again."));
+            }, "GameRunner").start();
+
+            return; // we've launched the game runner, return early from startGame
         } catch (Exception ignored) {}
 
         GameWorld.uiLogger = m -> {

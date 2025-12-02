@@ -1,17 +1,28 @@
 package characters;
 
 import core.GameWorld;
-import core.RetroMultithreadingAdventure;
+// no direct dependency on RetroMultithreadingAdventure required here
 
 public class Thief extends GameCharacter {
-    public Thief() { this("Thief"); }
+    public Thief() { this("Thief", null); }
 
-    public Thief(String name) {
+    public Thief(String name) { this(name, null); }
+
+    public Thief(String name, String advice) {
         super(name);
-        String advice = RetroMultithreadingAdventure.latestAdvice;
         GameWorld.log("The desperate " + getCharacterName() + " sets out on a quest to slay the dragon!");
         if (advice != null) {
             GameWorld.log(getCharacterName() + " quietly notes the advice: \"" + advice + "\"");
+        }
+    }
+
+    @Override
+    protected void onReturn() {
+        String advice = this.initialAdvice == null ? "" : this.initialAdvice.toLowerCase();
+        if (advice.contains("quiet")) {
+            GameWorld.log(getCharacterName() + " returns victorious and remarkably silent about it.");
+        } else {
+            GameWorld.log(getCharacterName() + " returns victorious!");
         }
     }
 

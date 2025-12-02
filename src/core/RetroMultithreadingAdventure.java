@@ -11,46 +11,41 @@ import characters.Wizard;
 import characters.GameCharacter;
 
 public class RetroMultithreadingAdventure extends Thread {
-    public static volatile String latestAdvice = null;
-
     public static Phaser partPhaser = null;
     private static final Semaphore continueSemaphore = new Semaphore(0);
     // Monitor used to wait for characters to arrive at the phaser without busy-waiting
     private static final Object arrivedMonitor = new Object();
     public static int totalParts = 0;
     public static int roundsPerPart = 0;
-    // Allow the UI to provide custom names for the characters before the game starts
-    public static String knightName = "Knight";
-    public static String wizardName = "Wizard";
-    public static String thiefName = "Thief";
 
     public static void main(String[] args) {
         runGame();
     }
 
     public static void runGame() {
-        runGameWithParts(3, 2);
+        // legacy default behavior: create a simple config with defaults
+        GameConfig cfg = new GameConfig(3, 2, "Knight", "Wizard", "Thief", ApiClient.fetchAdvice());
+        runGame(cfg);
     }
 
-    public static void runGameWithParts(int totalParts, int roundsPerPart) {
+    public static void runGame(GameConfig cfg) {
         GameWorld.initDefaultLoot();
 
-        latestAdvice = ApiClient.fetchAdvice();
+        String latestAdvice = cfg.latestAdvice != null ? cfg.latestAdvice : ApiClient.fetchAdvice();
         GameWorld.log("[World] Advice of the day: " + (latestAdvice == null ? "(none)" : '"' + latestAdvice + '"'));
 
-        RetroMultithreadingAdventure.totalParts = totalParts;
-        RetroMultithreadingAdventure.roundsPerPart = roundsPerPart;
-
         partPhaser = new Phaser(1);
+        RetroMultithreadingAdventure.totalParts = cfg.totalParts;
+        RetroMultithreadingAdventure.roundsPerPart = cfg.roundsPerPart;
 
         List<GameCharacter> characters = new ArrayList<>();
-        characters.add(new Knight(knightName));
-        characters.add(new Wizard(wizardName));
-        characters.add(new Thief(thiefName));
+        characters.add(new Knight(cfg.knightName, latestAdvice));
+        characters.add(new Wizard(cfg.wizardName, latestAdvice));
+        characters.add(new Thief(cfg.thiefName, latestAdvice));
 
         characters.forEach(Thread::start);
 
-        for (int part = 1; part <= totalParts; part++) {
+        for (int part = 1; part <= cfg.totalParts; part++) {
             int expectedArrivals = Math.max(0, partPhaser.getRegisteredParties() - 1);
             waitForArrivals(expectedArrivals);
 

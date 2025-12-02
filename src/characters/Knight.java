@@ -1,15 +1,16 @@
 package characters;
 
 import core.GameWorld;
-import core.RetroMultithreadingAdventure;
+// no direct dependency on RetroMultithreadingAdventure required here
 
 public class Knight extends GameCharacter {
-    public Knight() { this("Knight"); }
+    public Knight() { this("Knight", null); }
 
-    public Knight(String name) {
+    public Knight(String name) { this(name, null); }
+
+    public Knight(String name, String advice) {
         super(name);
         GameWorld.log("The brave " + getCharacterName() + " sets out on a quest to slay the dragon!");
-        String advice = RetroMultithreadingAdventure.latestAdvice;
         if (advice != null) {
             GameWorld.log(getCharacterName() + " hears a piece of advice: \"" + advice + "\"");
         }
