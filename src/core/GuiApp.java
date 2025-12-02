@@ -15,6 +15,12 @@ import javafx.scene.text.TextAlignment;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.scene.Node;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
 import javafx.scene.input.KeyCode;
 import java.io.File;
 import java.net.URL;
@@ -115,28 +121,51 @@ public class GuiApp extends Application {
 
         BorderPane root = new BorderPane();
         root.getStyleClass().add("pixel-bg");
-        URL bgUrl = getClass().getResource("/pixel-bg.webp");
+        // Prefer a developer-provided `New_art` file in resources (check common extensions),
+        // falling back to the legacy pixel background.
         String img = null;
-        if (bgUrl != null) img = bgUrl.toExternalForm();
-        else {
-            // Prefer developer-provided resources in src/resources
-            File f = new File("src/resources/pixel-bg.webp");
-            if (!f.exists()) f = new File("src/pixel-bg.webp");
-            if (f.exists()) img = f.toURI().toString();
+        String[] candidates = {"New_art.jpg","new_art.jpg","New_art.png","new_art.png","New_art.webp","new_art.webp","New_art.avif","new_art.avif"};
+        try {
+            for (String name : candidates) {
+                URL res = getClass().getResource("/" + name);
+                if (res != null) { img = res.toExternalForm(); break; }
+                File f = new File("src/resources/" + name);
+                if (!f.exists()) f = new File("src/" + name);
+                if (f.exists()) { img = f.toURI().toString(); break; }
+            }
+        } catch (Exception ignored) {}
+
+        if (img == null) {
+            URL bgUrl = getClass().getResource("/pixel-bg.webp");
+            if (bgUrl != null) img = bgUrl.toExternalForm();
+            else {
+                File f = new File("src/resources/pixel-bg.webp");
+                if (!f.exists()) f = new File("src/pixel-bg.webp");
+                if (f.exists()) img = f.toURI().toString();
+            }
         }
 
         if (img != null) {
-            // Prefer the pixelated background image when available
-            root.setStyle(
-                "-fx-background-image: url('" + img + "');"
-                + " -fx-background-repeat: no-repeat;"
-                + " -fx-background-position: center center;"
-                + " -fx-background-size: cover;"
-            );
+            // Try to load the image via JavaFX Image API. Some formats (e.g. AVIF)
+            // may not be supported by JavaFX on this platform; if loading fails
+            // we'll fall back to the gradient background.
+            try {
+                Image bgImg = new Image(img, 0, 0, true, true);
+                if (!bgImg.isError()) {
+                    // Use 'cover' so the image fills the view and avoids letterboxing
+                    BackgroundSize bgSize = new BackgroundSize(100, 100, true, true, false, true); // cover
+                    BackgroundImage bimg = new BackgroundImage(bgImg, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, bgSize);
+                    root.setBackground(new Background(bimg));
+                } else {
+                    // fallback gradient
+                    root.setStyle("background-color: linear-gradient(to bottom, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%); -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%);");
+                }
+            } catch (Exception ex) {
+                root.setStyle("background-color: linear-gradient(to bottom, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%); -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%);");
+            }
         } else {
             // Fallback gradient background (standard and -fx versions)
-            root.setStyle
-            ("background-color: linear-gradient(to bottom, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%); -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%);");
+            root.setStyle("background-color: linear-gradient(to bottom, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%); -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2f8a2f 0%, #1b5a1b 50%, #143e14 100%);");
         }
 
         // contentBox and scrollPane are styled inline above; no external stylesheet required
