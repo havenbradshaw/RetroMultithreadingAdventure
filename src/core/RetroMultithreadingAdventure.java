@@ -70,7 +70,7 @@ public class RetroMultithreadingAdventure extends Thread {
         }
 
         String summary = characters.stream()
-                .map(c -> c.getCharacterName() + ": wins =" + c.getBattlesWon() + ", items =" + c.getInventory().size())
+                .map(c -> c.getCharacterName() + ": wins=" + c.getBattlesWon() + ", items=" + c.getInventory().size())
                 .collect(Collectors.joining(" | "));
 
         GameWorld.log("--- Adventure Summary ---");
