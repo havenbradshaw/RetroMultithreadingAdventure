@@ -1,7 +1,9 @@
 package core;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
+
 import javafx.scene.text.Font;
 import javafx.scene.image.Image;
 
@@ -20,12 +22,12 @@ public final class ResourceUtil {
             // Then developer-friendly src/resources
             File f = new File("src/resources/" + name);
             if (f.exists()) {
-                try { return f.toURI().toURL(); } catch (Exception ignored) {}
+                try { return f.toURI().toURL(); } catch (MalformedURLException ignored) {}
             }
             // Also allow top-level src/ fallback
             f = new File("src/" + name);
             if (f.exists()) {
-                try { return f.toURI().toURL(); } catch (Exception ignored) {}
+                try { return f.toURI().toURL(); } catch (MalformedURLException ignored) {}
             }
         }
         return null;
