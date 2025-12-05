@@ -155,7 +155,7 @@ public class GuiApp extends Application {
         stage.setScene(scene);
         stage.show();
 
-        // Ensure the ScrollPane viewport itself is transparent (some JavaFX skins paint a viewport)
+        // Ensure the ScrollPane viewport itself is transparent
         Platform.runLater(() -> {
             try {
                 Node viewport = scene.lookup(".scroll-pane .viewport");

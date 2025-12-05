@@ -64,16 +64,6 @@ public class ApiClient {
                     }
                 }
             }
-
-            // As a last resort, try to return the whole JSON stripped of braces
-            String trimmed = json.trim();
-            if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-                String inner = trimmed.substring(1, trimmed.length() - 1).trim();
-                if (!inner.isEmpty()) {
-                    // remove quotes
-                    return inner.replaceAll("\\\"", "").trim();
-                }
-            }
             // If parsing failed, fall back to a safe local quote
             return getLocalFallback();
         } catch (IOException e) {
