@@ -87,7 +87,7 @@ public class RetroMultithreadingAdventure extends Thread {
     }
 
     /**
-     * Wait (without busy-waiting) until the specified number of arrivals
+     * Wait until the specified number of arrivals
      * have been observed on the shared Phaser.
      */
     public static void waitForArrivals(int expectedArrivals) {
