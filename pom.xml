@@ -16,7 +16,7 @@
         <javafx.version>20</javafx.version>
         <!-- Platform classifier for JavaFX native artifacts: win, linux, mac, mac-aarch64 -->
         <javafx.platform>win</javafx.platform>
-        <mainClass>core.GuiApp</mainClass>
+        <mainClass>core.Launcher</mainClass>
     </properties>
 
     <dependencies>
